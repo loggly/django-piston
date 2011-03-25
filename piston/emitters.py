@@ -28,6 +28,7 @@ from django.core.urlresolvers import NoReverseMatch
 from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
 from django.core import serializers
+from django.conf import settings
 
 from piston.utils import HttpStatusCode, Mimer
 from piston.validate_jsonp import is_valid_jsonp_callback_value
@@ -152,6 +153,7 @@ class Emitter(object):
             ret = { }
             handler = self.in_typemapper(type(data), self.anonymous)
             get_absolute_uri = False
+            ignore_none = getattr(settings, 'PISTON_IGNORE_NONE_FIELDS', False)
 
             if handler or fields:
                 v = lambda f: getattr(data, f.attname)
@@ -195,7 +197,7 @@ class Emitter(object):
                         if not f.rel:
                             if f.attname in get_fields:
                                 temp = _any(v(f))
-                                if temp is not None:
+                                if not (ignore_none and temp is None):
                                     ret[f.attname] = temp
                                 get_fields.remove(f.attname)
                         else:
