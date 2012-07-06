@@ -1,4 +1,5 @@
 import time
+import django
 from django.http import HttpResponse
 from django.core.cache import cache
 from django import get_version as django_version
@@ -59,12 +60,16 @@ class rc_factory(object):
                 HttpResponse.content although this bug report (feature request)
                 suggests that it should: http://code.djangoproject.com/ticket/9403 
                 """
+                is_string = False
                 if not isinstance(content, basestring) and hasattr(content, '__iter__'):
                     self._container = content
-                    self._is_string = False
                 else:
                     self._container = [content]
-                    self._is_string = True
+
+                if django.VERSION >= (1, 4):
+                    self._base_content_is_iter = not is_string
+                else:
+                    self._is_string = is_string
 
             content = property(HttpResponse._get_content, _set_content)
 
